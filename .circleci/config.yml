@@ -1,0 +1,53 @@
+version: 2
+jobs:
+  validate_terraform:
+    docker:
+      - image: hashicorp/terraform:light
+        environment:
+          GOOGLE_CLOUD_KEYFILE_JSON: $GOOGLE_CLOUD_KEYFILE_JSON
+          GOOGLE_COMPUTE_ZONE: $GOOGLE_COMPUTE_ZONE
+          GOOGLE_PROJECT_ID: $GOOGLE_PROJECT_ID
+
+    steps:
+      - checkout
+      - run:
+          name: Set up Terraform
+          command: terraform init -input=false
+      - run:
+          name: Validate Terraform
+          command: terraform validate
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./*
+
+  deploy_env:
+    docker:
+      - image: hashicorp/terraform:light
+        environment:
+          GOOGLE_CLOUD_KEYFILE_JSON: $GOOGLE_CLOUD_KEYFILE_JSON
+          GOOGLE_COMPUTE_ZONE: $GOOGLE_COMPUTE_ZONE
+          GOOGLE_PROJECT_ID: $GOOGLE_PROJECT_ID
+
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          name: Deploy the full environment
+          command: terraform apply -input=false -auto-approve
+
+
+workflows:
+  version: 2
+
+  validate_and_deploy:
+    jobs:
+      - validate_terraform
+      - deploy_env:
+          filters:
+            branches:
+              only: master
+          requires:
+            - validate_terraform

@@ -1,0 +1,7 @@
+steps:
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["run", "-v", "/workspace:/data", "-t", "wata727/tflint"]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ["run", "-v", "/workspace/.git:/data", "-t", "hashicorp/terraform:light", "plan"]
