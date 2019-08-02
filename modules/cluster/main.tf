@@ -7,6 +7,16 @@ resource "google_container_cluster" "primary" {
   # node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count = 1
+
+  master_auth {
+    # Set username and password to blank to disable basic auth
+    username = ""
+    password = ""
+
+    client_certificate_config {
+      issue_client_certificate = false
+    }
+  }
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
@@ -14,6 +24,11 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   location   = var.location
   cluster    = "${google_container_cluster.primary.name}"
   node_count = 1
+
+  management {
+    auto_repair = true
+    auto_upgrade = true
+  }
 
   node_config {
     preemptible  = true
